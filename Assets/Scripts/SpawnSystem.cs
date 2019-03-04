@@ -23,7 +23,7 @@ class SpawnSystem : ComponentSystem
         _group = GetComponentGroup(typeof(SpawnInfo));
 
         _actorArchetype = EntityManager.CreateArchetype(
-            typeof(Actor), typeof(Position), typeof(Scale), typeof(RenderMesh)
+            typeof(Brick), typeof(Position), typeof(Scale), typeof(RenderMesh)
         );
     }
 
@@ -33,6 +33,8 @@ class SpawnSystem : ComponentSystem
         EntityManager.GetAllUniqueSharedComponentData<SpawnInfo>(_uniques);
         int tempValue = -_maxValue;
         int heightCount = 0;
+        float randomSpeed = 0f;
+        Random random = new Random((uint)System.DateTime.Now.Ticks);
         for (var i = 0; i < _uniques.Count; i++)
         {
             _group.SetFilter(_uniques[i]);
@@ -42,14 +44,14 @@ class SpawnSystem : ComponentSystem
             var iterator = _group.GetEntityArray();
             var entities = new NativeArray<Entity>(iterator.Length, Allocator.Temp);
             iterator.CopyTo(entities);
-
             // Instantiate actors along with the buffer entities.
             for (var j = 0; j < entities.Length; j++)
             {
                 // Create the first voxel.
                 var voxel = EntityManager.CreateEntity(_actorArchetype);
-                EntityManager.SetComponentData(voxel, new Actor { ID = _counter++ ,offset = 0, bIncrease = true});
+                EntityManager.SetComponentData(voxel, new Brick { ID = _counter++});
                 EntityManager.SetSharedComponentData(voxel, _uniques[i].RendererSettings);
+                //EntityManager.SetSharedComponentData(voxel, rm);
 
                 // Make clones from the first voxel.
                 var cloneCount = _uniques[i].MaxCount - 1;
@@ -57,16 +59,23 @@ class SpawnSystem : ComponentSystem
                 {
                     var clones = new NativeArray<Entity>(cloneCount, Allocator.Temp);
                     EntityManager.Instantiate(voxel, clones);
+                    randomSpeed = random.NextFloat(0f, 2f);
+                    //RenderMesh rm = GetUniqueMaterial(heightCount, _uniques[i].RendererSettings);
                     for (var k = 0; k < cloneCount; k++)
                     {
                         EntityManager.SetComponentData(clones[k], new Position { Value = new float3(tempValue, heightCount, heightCount) });
-                        EntityManager.SetComponentData(clones[k], new Scale { Value = new float3(1,1,1)});
-                        EntityManager.SetComponentData(clones[k], new Actor { ID = _counter++, offset = 0, bIncrease = true});//, oriPosition = new float3(tempValue, heightCount, heightCount)
+                        EntityManager.SetComponentData(clones[k], new Scale { Value = new float3(1,1,1)});                       
+                        EntityManager.SetComponentData(clones[k], new Brick { ID = _counter++, offset = 0, bIncrease = 1, moveSpeed = randomSpeed, oriPosition = new float3(tempValue, heightCount, heightCount) });//,                                               
+                        //TODO:give each brick a different Material value seems to be impossible,i will do it in the Shader
+                        //EntityManager.SetSharedComponentData(clones[k], rm);
+
                         tempValue = tempValue + 1;
                         if (tempValue > _maxValue)
                         {
                             heightCount++;
                             tempValue = -_maxValue;
+                            randomSpeed = random.NextFloat(0f, 0.2f);
+                            //rm = GetUniqueMaterial(heightCount, _uniques[i].RendererSettings);
                         }
                     }
                     clones.Dispose();
@@ -79,4 +88,13 @@ class SpawnSystem : ComponentSystem
         }
         _uniques.Clear();
     }
+
+    //private RenderMesh GetUniqueMaterial(int index, RenderMesh oriRenderMesh)
+    //{
+    //    UnityEngine.Material mat = oriRenderMesh.material;
+    //    float tempValue = (index % 256) / 254f;
+    //    mat.SetFloat("_Value", tempValue);
+    //    oriRenderMesh.material = mat;
+    //    return oriRenderMesh;
+    //}
 }

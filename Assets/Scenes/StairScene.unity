@@ -275,7 +275,7 @@ GameObject:
   - component: {fileID: 658493791}
   - component: {fileID: 658493790}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Spawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -323,7 +323,7 @@ MonoBehaviour:
     MaxCount: 10000
     RendererSettings:
       mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-      material: {fileID: 2100000, guid: 6b7aca6bcf1bfef4da4e670d63ef66f2, type: 2}
+      material: {fileID: 2100000, guid: 8530f95ecea50c7408819b0b55a3b78a, type: 2}
       subMesh: 0
       layer: 0
       castShadows: 0

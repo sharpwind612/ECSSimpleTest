@@ -9,11 +9,11 @@ using Unity.Mathematics;
 class StairMoveSystem : JobComponentSystem
 {
     [Unity.Burst.BurstCompile]
-    struct StairMove : IJobProcessComponentData<Actor, Position, Scale>
+    struct StairMove : IJobProcessComponentData<Brick, Position, Scale>
     {
         public float dt;
 
-        public void Execute(ref Actor actor, ref Position position, ref Scale scale)
+        public void Execute(ref Brick actor, ref Position position, ref Scale scale)
         {
             // Extract the current position/scale.
             var _pos = position.Value;
@@ -21,24 +21,23 @@ class StairMoveSystem : JobComponentSystem
             var _id = actor.ID;
             var _offset = actor.offset;
             var _bIncrease = actor.bIncrease;
-            //var _oriPosition = actor.oriPosition;
+            var _moveSpeed = actor.moveSpeed;
+            var _oriPosition = actor.oriPosition;
 
             // Move
-            if (_bIncrease == true)
-                _offset += dt;// 0.01f;
-            else
-                _offset -= dt;// 0.01f;
-            if (_offset > 5f)
-                _bIncrease = false;
-            if (_offset < -5f)
-                _bIncrease = true;
+            _offset += dt * _bIncrease * _moveSpeed;
 
-            //_pos = _oriPosition + new float3(_offset, 0, 0);
+            if (_offset > 5f)
+                _bIncrease = -1;
+            if (_offset < -5f)
+                _bIncrease = 1;
+
+            _pos = _oriPosition + new float3(_offset, 0, 0);
 
             //Build a new position and scale
             position = new Position { Value = _pos };
             scale = new Scale { Value = _scale };
-            actor = new Actor { ID = _id, offset = _offset, bIncrease = _bIncrease };//, oriPosition = _oriPosition
+            actor = new Brick { ID = _id, offset = _offset, bIncrease = _bIncrease, moveSpeed = _moveSpeed, oriPosition = _oriPosition };
         }
     }
 
